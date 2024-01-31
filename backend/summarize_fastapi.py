@@ -6,6 +6,8 @@ from pydantic import BaseModel
 import praw
 from fastapi.responses import FileResponse
 from backend.generate_docs import write_comments_to_file, fetch_comments_and_write_to_file
+from backend.summarize_docs import stuff_context_summarize
+import logging
 
 load_dotenv()
 
@@ -25,7 +27,7 @@ async def get_top_posts(request: SubredditRequest):
         subreddit = reddit.subreddit(request.subreddit)
         top_posts = []
         
-        for post in subreddit.top(limit=5):
+        for post in subreddit.hot(limit=5):
             top_posts.append({
                 "title": post.title,
                 "id": post.id,
@@ -44,41 +46,7 @@ async def get_comments(submission_id: str):
     with open(f"{submission_id}_comments.txt", "w") as file:
         fetch_comments_and_write_to_file(submission, file)
     
-    return FileResponse(path=f"{submission_id}_comments.txt", filename=f"{submission_id}_comments.txt")
-
-
-@app.post("/summarize")
-async def summarize(subreddit: str):
-    # Fetch the top post from the subreddit
-    async with httpx.AsyncClient() as client:
-        reddit_response = await client.get(f"https://www.reddit.com/r/{subreddit}/top.json?limit=1", headers={"User-Agent": "FastAPI reddit summarizer"})
-        
-        if reddit_response.status_code != 200:
-            raise HTTPException(status_code=reddit_response.status_code, detail="Error fetching data from Reddit")
-
-        # Extract the post's title and text
-        top_post_data = reddit_response.json()
-        try:
-            post_title = top_post_data["data"]["children"][0]["data"]["title"]
-            post_selftext = top_post_data["data"]["children"][0]["data"]["selftext"]
-        except (IndexError, KeyError):
-            raise HTTPException(status_code=500, detail="Error processing Reddit data")
-
-        # Summarize the post using OpenAI
-        openai_response = await client.post(
-            "https://api.openai.com/v1/engines/davinci-codex/completions",
-            json={
-                "prompt": f"Summarize this Reddit post: \n\n{post_title}\n\n{post_selftext}",
-                "max_tokens": 100
-            },
-            headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}"
-            }
-        )
-
-        if openai_response.status_code != 200:
-            raise HTTPException(status_code=openai_response.status_code, detail="Error interacting with OpenAI")
-
-        summary = openai_response.json()["choices"][0]["text"].strip()
-
-        return {"summary": summary}
+    logging.info("Writing summary...")
+    summary = stuff_context_summarize(f"{submission_id}_comments.txt")
+    logging.info("Summary done")
+    return {"summary": summary}

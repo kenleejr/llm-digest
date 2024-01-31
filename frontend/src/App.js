@@ -4,6 +4,7 @@ import './App.css';
 function App() {
   const [subreddit, setSubreddit] = useState('');
   const [topPosts, setTopPosts] = useState([]);
+  const [commentsSummary, setCommentsSummary] = useState(''); 
 
   const handleSubmit = async () => {
     try {
@@ -22,8 +23,13 @@ function App() {
   };
 
   const handlePostClick = async (postId) => {
-    // This would be the URL where your FastAPI backend is serving the files
-    window.open(`http://localhost:8000/get-comments/${postId}`, '_blank');
+    try {
+      const response = await fetch(`/get-comments/${postId}`);
+      const data = await response.json();
+      setCommentsSummary(data.summary); // Update the comments summary state
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
   };
 
   return (
@@ -33,8 +39,7 @@ function App() {
           type="text"
           value={subreddit}
           onChange={(e) => setSubreddit(e.target.value)}
-          placeholder="Enter subreddit name"
-        />
+          placeholder="Enter subreddit name" />
         <button onClick={handleSubmit}>Get Top Posts</button>
         <ul>
           {topPosts.map((post) => (
@@ -43,6 +48,12 @@ function App() {
             </li>
           ))}
         </ul>
+        {commentsSummary && (
+          <div>
+            <h3>Comments Summary</h3>
+            <textarea value={commentsSummary} readOnly />
+          </div>
+        )}
       </header>
     </div>
   );

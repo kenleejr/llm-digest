@@ -3,12 +3,14 @@ from openai import OpenAI
 client = OpenAI()
 
 
-def stuff_context_summarize(text):
+def stuff_context_summarize(filename):
+    with open(filename, 'r') as file:
+        text_content = file.read()
     response = client.chat.completions.create(
         model="gpt-4-0125-preview",
         messages=[
             {"role": "system", "content": "You are a journalist who is great at synthesizing points across social media interactions into a cohesive narrative."},
-            {"role": "user", "content": f"Please summarize and analyze this Reddit post. Remove all user ids and extract main themes into an article-style format: {text}"}
+            {"role": "user", "content": f"Please summarize and analyze this Reddit post. Remove all user ids and extract main themes into an article-style format: {text_content}"}
         ]
     )
     summary = response.choices[0].message.content

@@ -7,19 +7,28 @@ reddit = praw.Reddit(client_id='5m80-fvDDHGNcJG82XPcbw',
                      client_secret='4-nYZJ8m6MEU5LEpn3IXreyF66eoIw',
                      user_agent='laptop:llm-digest:v0.1 (by u/JohnyWalkerRed)')
 
-def write_comments_to_file(comment, file, depth=0):
+def write_comments_to_file(comment, file, depth=0,  limit=100, count=[0]):
+    # Check if we have reached the limit of comments to process.
+    if count[0] >= limit:
+        return
+    
     # Write the user id and comment body to the file with indentation to show depth
     author_id = comment.author.id if comment.author else "deleted"
     file.write("  " * depth + f"User ID: {author_id}\n" + "  " * depth + comment.body + "\n\n")
+    count[0] += 1  # Increment the count of comments processed
     
     if hasattr(comment, 'replies'):
         for reply in comment.replies:
             write_comments_to_file(reply, file, depth + 1)
 
-def fetch_comments_and_write_to_file(submission, file):
+def fetch_comments_and_write_to_file(submission, file, limit=100):
     submission.comments.replace_more(limit=0) # This line ensures you get all comments, not just the more_comments objects
+    count = 0
     for comment in submission.comments.list():
+        if count >= limit:
+            break
         write_comments_to_file(comment, file)
+        count += 1
 
 
 def main():
