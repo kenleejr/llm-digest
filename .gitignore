@@ -1,2 +1,27 @@
-/wandb
+wandb
 *.txt
+
+# Build output directories
+dist
+dist-ssr
+build
+public
+.next 
+
+# OS or editor artifacts
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln 
+
+# Coverage reports
+coverage/
+
+# Local environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
