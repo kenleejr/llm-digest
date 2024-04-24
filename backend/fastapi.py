@@ -141,44 +141,45 @@ async def get_comments_and_summarize(submission_id: str):
         comment_bodies.append(comment.body)
     
     comment_article = "\n".join(comment_bodies)
-    text_splitter = CharacterTextSplitter(
-        separator="root:",
-        chunk_size=1000,
-        chunk_overlap=0,
-        length_function=len,
-        is_separator_regex=False,
-    )
+    # text_splitter = CharacterTextSplitter(
+    #     separator="root:",
+    #     chunk_size=1000,
+    #     chunk_overlap=0,
+    #     length_function=len,
+    #     is_separator_regex=False,
+    # )
 
-    root_comment_splits = text_splitter.create_documents([comment_article])
-    ollama = Ollama(base_url='http://localhost:11434', model="gemma:7b")
-    map_prompt_template = """
-                        Write a summary of this chunk of text that includes the main points and any important details.
-                        {text}
-                        """
+    # root_comment_splits = text_splitter.create_documents([comment_article])
+    # ollama = Ollama(base_url='http://localhost:11434', model="gemma:7b")
+    # map_prompt_template = """
+    #                     Write a summary of this chunk of text that includes the main points and any important details.
+    #                     {text}
+    #                     """
 
-    map_prompt = PromptTemplate(template=map_prompt_template, input_variables=["text"])
+    # map_prompt = PromptTemplate(template=map_prompt_template, input_variables=["text"])
 
-    combine_prompt_template = """
-                        Write a concise summary of the following text delimited by triple backquotes.
-                        Return your response in bullet points which covers the key points of the text.
-                        ```{text}```
-                        BULLET POINT SUMMARY:
-                        """
+    # combine_prompt_template = """
+    #                     Write a concise summary of the following text delimited by triple backquotes.
+    #                     Return your response in bullet points which covers the key points of the text.
+    #                     ```{text}```
+    #                     BULLET POINT SUMMARY:
+    #                     """
 
-    combine_prompt = PromptTemplate(
-        template=combine_prompt_template, input_variables=["text"]
-    )
+    # combine_prompt = PromptTemplate(
+    #     template=combine_prompt_template, input_variables=["text"]
+    # )
 
-    map_reduce_chain = load_summarize_chain(
-        ollama,
-        chain_type="map_reduce",
-        map_prompt=map_prompt,
-        combine_prompt=combine_prompt,
-        return_intermediate_steps=True,
-    )
-    logging.info("Writing summary...")
-    map_reduce_outputs = map_reduce_chain({"input_documents": root_comment_splits})
+    # map_reduce_chain = load_summarize_chain(
+    #     ollama,
+    #     chain_type="map_reduce",
+    #     map_prompt=map_prompt,
+    #     combine_prompt=combine_prompt,
+    #     return_intermediate_steps=True,
+    # )
+    # logging.info("Writing summary...")
+    # map_reduce_outputs = map_reduce_chain({"input_documents": root_comment_splits})
     
-    # summary = stuff_context_summarize(f"{submission_id}_comments.txt")
-    logging.info("Summary done")
-    return {"summary": map_reduce_outputs["intermediate_steps"]}
+    # # summary = stuff_context_summarize(f"{submission_id}_comments.txt")
+    # logging.info("Summary done")
+    # return {"summary": map_reduce_outputs["intermediate_steps"]}
+    return {"summary": comment_article}
