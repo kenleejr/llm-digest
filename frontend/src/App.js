@@ -14,13 +14,15 @@ function SearchForm({ subreddit, setSubreddit, handleSubmit }){
   );
 }
 
-function PostsTable({ tPosts }){
-  console.log(tPosts)
+function PostsTable({ tPosts, selectedArticles, setSelectedArticles, handleArticleSelect, handleSelect }){
   return  (
     <div className="container mx-auto overflow-x-auto">        
       <table className="w-full table-auto border-collapse border border-slate-400">
         <thead>
           <tr>
+            <th className="bg-gray-100 text-left py-3 px-4 border border-slate-300">
+              <input type="checkbox" onChange={() => setSelectedArticles(tPosts.map(post => post.id))} />
+            </th>
             <th className="bg-gray-100 text-left py-3 px-4 border border-slate-300">Subreddit Post Title</th>
             <th className="bg-gray-100 text-left py-3 px-4 border border-slate-300">Score</th>
           </tr>
@@ -28,7 +30,10 @@ function PostsTable({ tPosts }){
         <tbody>
           {tPosts.map((post) => (
             <tr key={post.id} className="hover:bg-gray-100 cursor-pointer"> 
-              <td className="py-3 px-4 border border-slate-300">{post.title}</td> 
+              <td className="py-3 px-4 border border-slate-300">
+                <input type="checkbox" checked={selectedArticles.includes(post.id)} onChange={() => handleArticleSelect(post.id)} />
+              </td>
+              <td className="py-3 px-4 border border-slate-300"><button type="button" onClick={() => handleSelect(post.id)}>{post.title}</button></td> 
               <td className="py-3 px-4 border border-slate-300">{post.score}</td>
             </tr>
           ))}
@@ -40,8 +45,8 @@ function PostsTable({ tPosts }){
 
 function LargeTextDisplay({ text }) {
   return (
-    <div className="container max-h-64 overflow-y-scroll">
-      <div className="prose">
+    <div className="container max-h-64 whitespace-pre-wrap">
+      <div>
         {text}
       </div>
     </div>
@@ -49,12 +54,15 @@ function LargeTextDisplay({ text }) {
 }
 
 export default function App() {
-  const [subreddit, setSubreddit] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [topPosts, setTopPosts] = useState([{"id": 1234, "title": "Hello World", "score": 42}]);
+  const [topPosts, setTopPosts] = useState([]);
+  const [subreddit, setSubreddit] = useState('');
+  const [selectedArticles, setSelectedArticles] = useState([]);
   const [isSummarizing, setIsSummarizing] = useState(false)
+  const [llmResponse, setllmResponse] = useState('')
+
+
   console.log(topPosts)
-  // const [commentsSummary, setCommentsSummary] = useState(''); 
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -75,6 +83,31 @@ export default function App() {
     }
   };
 
+  const handleSelect = async ( postId ) => {
+    setIsSummarizing(true);
+    console.log(postId)
+    try {
+      const response = await fetch("/get-comments-and-summarize/" + postId, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ subreddit }),
+      });
+      const data = await response.json();
+      console.log(data.summary)
+      setllmResponse(data.summary)
+      setIsSummarizing(false);
+    } catch (error) {
+      console.error('Error summarizing post', error);
+    }
+  };
+
+  const handleArticleSelect = (postId) => {
+    const isSelected = selectedArticles.includes(postId);
+    setSelectedArticles(isSelected ? selectedArticles.filter(id => id !== postId) : [...selectedArticles, postId]);
+  };
+
   return (
     <div className="container p-6">
       <h1 className="text-center text-4xl font-bold font-['DM Sans'] mb-4">LLM Digest</h1>
@@ -86,17 +119,19 @@ export default function App() {
         </div>
       ) : (
         <div className="flex justify-center items-center mt-4">
-          <PostsTable tPosts={topPosts} />
+          <PostsTable tPosts={topPosts} setSelectedArticles={setSelectedArticles} selectedArticles={selectedArticles} handleArticleSelect={handleArticleSelect} handleSelect={handleSelect}/>
         </div>
       )}
       </div>
-      <div className="container mx-auto overflow-x-auto">
+      <div className="container mx-auto overflow-x-auto mt-4">
       {isSummarizing ? (
          <div className="flex justify-center items-center h-64"> 
           <ClipLoader loading={isSummarizing} />
          </div>
       ) : (
-        <h2>summarizing</h2>
+        <div className="flex justify-center items-center mt-4">
+          <LargeTextDisplay text={llmResponse} />
+        </div>
       )}
       </div>
     </div>
