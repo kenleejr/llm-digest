@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useTable } from 'react-table';
-import styled from 'styled-components';
 import { ClipLoader } from 'react-spinners';
 import { motion } from 'framer-motion';
-import Form from 'react-bootstrap/Form';
+import ChatInterface from "./components/Chat";
 
 function SearchForm({ subreddit, setSubreddit, handleSubmit }){
   return (
@@ -111,7 +110,7 @@ export default function App() {
                   setSubreddit={setSubreddit} 
                   handleSubmit={handleSubmit} 
       /> 
-      <div className="grid grid-cols-2 mt-4 mx-auto overflow-x-auto w-full gap-4">
+      <div className="grid grid-cols-2 mt-4 w-full gap-4">
         {isLoading ? (
           <div>
             <ClipLoader loading={isLoading} />
@@ -130,7 +129,7 @@ export default function App() {
           </div>
         ) : ( selectedSubmission !== null && 
           <div>
-            <LargeTextDisplay text={llmResponse} />
+            <ChatInterface />
           </div>
         )}
       </div>
