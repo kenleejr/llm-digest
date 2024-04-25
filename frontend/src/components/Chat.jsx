@@ -1,20 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 function ChatHistory({ messages }) {
   return (
-    <div className="flex flex-col space-y-12">
-        <ul className="container">
+    <div className="grid grid-cols-new1 gap-4">
         {messages.map((message, index) => (
-          <li key={index}>
-            <div className={`rounded-lg p-3 ${
-                message.user ? 'bg-indigo-700 text-white text-right' 
-                            : 'bg-gray-100 text-black text-left'
-              }`}> 
-              {message.message} 
-            </div>
-          </li>
+          <div key={index} className={`text-center rounded-lg p-4 ${
+            message.user ? 'bg-indigo-700 text-white justify-self-end' 
+                        : 'bg-gray-100 text-black justify-self-start'
+          }`}>
+            {message.message}
+          </div>
         ))}
-      </ul>
     </div>
   );
 }
@@ -29,14 +25,15 @@ function UserInput({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="">
+    <form onSubmit={handleSubmit}>
       <input 
+        className="resize-y overflow-y-auto w-5/6 p-2 h-auto border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 focus:border-indigo-500"
         type="text" 
         value={input} 
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type your message..."
       />
-      <button type="submit">Send</button>
+      <button type="submit" className="rounded-md w-1/6 p-2 bg-indigo-700 text-white">Send</button>
     </form>
   );
 }
@@ -62,11 +59,21 @@ export default function ChatInterface() {
         setBotResponse(''); // Reset botResponse after it's added
       }
     }, [botResponse]);
-    
+
+    const chatContainerRef = useRef(null); // Create a ref
+    useEffect(() => {
+      // Scroll to the bottom whenever the chat history updates
+      const chatContainer = chatContainerRef.current;
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, [chatHistory]); 
+  
+
     return (
-      <div className="container">
+      <div className="grid grid-col-1 gap-4">
         {/* Display chat history */}
-        <div>
+        <div className="h-scren max-h-screen overflow-y-scroll snap-y" ref={chatContainerRef}>
           <ChatHistory messages={chatHistory} />
         </div>
           
