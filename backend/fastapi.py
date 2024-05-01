@@ -21,13 +21,13 @@ from langchain.chains.summarize import load_summarize_chain
 
 load_dotenv()
 
-# reddit = praw.Reddit(client_id='5m80-fvDDHGNcJG82XPcbw',
-#                      client_secret='4-nYZJ8m6MEU5LEpn3IXreyF66eoIw',
+# reddit = praw.Reddit(client_id='',
+#                      client_secret='',
 #                      user_agent='laptop:llm-digest:v0.1 (by u/JohnyWalkerRed)')
 
 reddit = asyncpraw.Reddit(
-    client_id="5m80-fvDDHGNcJG82XPcbw",
-    client_secret="4-nYZJ8m6MEU5LEpn3IXreyF66eoIw",
+    client_id="",
+    client_secret="",
     user_agent="laptop:llm-digest:v0.1 (by u/JohnyWalkerRed)"
 )
 
